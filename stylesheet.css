@@ -1329,8 +1329,20 @@ audio {
 .decor-1 { top: 480px; left: 40px; }       /* góc trên trái */
 .decor-2 { top: 250px; right: 40px; }     /* góc trên phải */
 .decor-3 { bottom: 120px; right: 10%; }    /* gần giữa, phía dưới */
-@media (max-width: 600px) {
-  .balloon {
-    transform: scale(0.7);
-  }
+/* === Responsive balloons (ghi đè cuối file) === */
+.balloons, .balloon {
+  position: absolute;                 /* bắt buộc để animate bằng top/left */
+  width: clamp(64px, 11vw, 120px);    /* tự co giãn theo màn hình */
+  height: clamp(90px, 16vw, 170px);   /* tỉ lệ gần giống bóng gốc */
+  /* KHÔNG scale bằng transform ở mobile nữa */
+  transform: none !important;
+}
+
+.balloons h2, .balloon h2 {
+  font-size: clamp(12px, 3.2vw, 22px); /* chữ trong bóng cũng co giãn */
+}
+
+/* Nếu có container bao bóng, tránh cắt mất khi xếp chữ */
+.balloon-wrap, .balloons-wrap, body {
+  overflow: visible !important;
 }

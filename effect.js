@@ -149,24 +149,42 @@ $('document').ready(function(){
 		});
 	});
 
-	function moveBalloons() {
-    let vw = $(window).width() / 2;    // tâm ngang
-    let vh = $(window).height() * 0.3; // 30% chiều cao màn hình
+	function computeGap() {
+  const $any = $('#b11,#b22,#b33,#b44,#b55,#b66,#b77').first();
+  const W = $(window).width();
+  const bw = ($any.length ? $any.outerWidth() : 90);     // độ rộng 1 bóng (px)
+  // khoảng cách mục tiêu (sát vừa đẹp ~ 0.85 lần bề rộng bóng)
+  let baseGap = bw * 0.85;
 
-    // Responsive khoảng cách
-    let gap;
-    if ($(window).width() < 500) {
-        gap = 50;   // mobile: bóng nhỏ, khoảng cách nhỏ
-    } else if ($(window).width() < 900) {
-        gap = 70;   // tablet
-    } else {
-        gap = 90;   // desktop: bóng to, khoảng cách lớn
-    }
+  // để chắc chắn KHÔNG tràn màn hình:
+  // span tổng = 6*gap + bw (từ b11 đến b77 cộng 6 khoảng + 1 bóng)
+  const maxGap = Math.max(40, (W - bw - 32) / 6);  // chừa ~32px lề an toàn
+  return Math.min(baseGap, maxGap);
+}
 
-    // Dừng bóng bay tự do
-    $('#b1,#b2,#b3,#b4,#b5,#b6,#b7').stop();
+function arrangeBalloonsRow() {
+  const W = $(window).width();
+  const H = $(window).height();
 
-    // Đổi ID giống file gốc
+  const vw = W / 2;             // tâm ngang
+  const topY = Math.max(60, H * 0.30); // hàng chữ cách đỉnh ~30% (tối thiểu 60px)
+  const gap = computeGap();
+
+  // xếp 7 bóng quanh tâm, khoảng cách "gap" — luôn sát, không tràn
+  $('#b11').stop(true).animate({ top: topY, left: vw - 3*gap }, 400);
+  $('#b22').stop(true).animate({ top: topY, left: vw - 2*gap }, 400);
+  $('#b33').stop(true).animate({ top: topY, left: vw - 1*gap }, 400);
+  $('#b44').stop(true).animate({ top: topY, left: vw            }, 400);
+  $('#b55').stop(true).animate({ top: topY, left: vw + 1*gap }, 400);
+  $('#b66').stop(true).animate({ top: topY, left: vw + 2*gap }, 400);
+  $('#b77').stop(true).animate({ top: topY, left: vw + 3*gap }, 400);
+}
+function moveBalloons() {
+  // 1) dừng hiệu ứng bay tự do cũ
+  $('#b1,#b2,#b3,#b4,#b5,#b6,#b7').stop(true);
+
+  // 2) đổi ID như file gốc để bước ghép chữ dùng các ID mới
+  if ($('#b11').length === 0) { // đổi 1 lần thôi, tránh đổi lại sau khi resize
     $('#b1').attr('id','b11');
     $('#b2').attr('id','b22');
     $('#b3').attr('id','b33');
@@ -174,27 +192,28 @@ $('document').ready(function(){
     $('#b5').attr('id','b55');
     $('#b6').attr('id','b66');
     $('#b7').attr('id','b77');
+  }
 
-    // Animate từng bóng về vị trí (xung quanh tâm màn hình)
-    $('#b11').animate({top: vh, left: vw - 3*gap}, 500);
-    $('#b22').animate({top: vh, left: vw - 2*gap}, 500);
-    $('#b33').animate({top: vh, left: vw - gap}, 500);
-    $('#b44').animate({top: vh, left: vw}, 500);
-    $('#b55').animate({top: vh, left: vw + gap}, 500);
-    $('#b66').animate({top: vh, left: vw + 2*gap}, 500);
-    $('#b77').animate({top: vh, left: vw + 3*gap}, 500);
+  // 3) xếp thành hàng, responsive
+  arrangeBalloonsRow();
 
-    // Làm mờ bóng nhẹ + hiện chữ
-    $('.balloons').css('opacity','0.9');
-    $('.balloons h2').fadeIn(3000);
+  // 4) hiệu ứng chữ & mờ nhẹ như gốc
+  $('.balloons, .balloon').css('opacity','0.9');
+  $('.balloons h2, .balloon h2').fadeIn(3000);
 }
-
-$('#wish_message').click(function(){
-    moveBalloons();  // gọi hàm trên
-    $(this).fadeOut('slow').delay(3000).promise().done(function(){
-        $('#story').fadeIn('slow');
-    });
+$(window).on('resize orientationchange', function(){
+  // Khi đã vào trạng thái ghép chữ (tức là đã có b11...), thì căn lại
+  if ($('#b11').length) {
+    arrangeBalloonsRow();
+  }
 });
+$('#wish_message').off('click').on('click', function(){
+  moveBalloons();
+  $(this).fadeOut('slow').delay(3000).promise().done(function(){
+    $('#story').fadeIn('slow');
+  });
+});
+
 
 	
 	$('#story').click(function(){
